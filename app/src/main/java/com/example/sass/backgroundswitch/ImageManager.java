@@ -12,12 +12,11 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLConnection;
 
 class ImageManager {
     private final int RESULT_OK = 1;
     private final int RESULT_ERROR = 0;
-
-    private Drawable image;
 
     private String urlImage = "https://picsum.photos/500/800?random";
     private String urlLandImage = "https://picsum.photos/800/500?random";
@@ -29,8 +28,12 @@ class ImageManager {
 
     private ConstraintLayout constraintLayout;
 
-    ImageManager(final Context context) {
+    private ConfigManager configManager;
+
+    ImageManager(Context context, ConfigManager configManager) {
+        this.configManager = configManager;
         constraintLayout = (ConstraintLayout) ((AppCompatActivity) context).findViewById(R.id.background_main);
+
         int screenLayout = context.getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK;
         int screenOrientation = context.getResources().getConfiguration().orientation;
 
@@ -51,11 +54,15 @@ class ImageManager {
         mHandler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(Message inputMessage) {
-                image = (Drawable) inputMessage.obj;
-                if(image != null)
+                Drawable image = (Drawable) inputMessage.obj;
+                if(inputMessage.what == RESULT_OK && image != null){
                     constraintLayout.setBackground(image);
-                else
+                    Log.d("handleMessage", "OK");
+                }
+                else{
                     constraintLayout.setBackgroundResource(R.drawable.default_background);
+                    Log.e("handleMessage", "ERROR");
+                }
             }
         };
     }
@@ -67,14 +74,17 @@ class ImageManager {
                 try{
                     URL url = new URL(imageUrl);
 
-                    image = Drawable.createFromStream(url.openStream(), "tempImage.jpg");
+                    URLConnection urlConnection = url.openConnection();
+                    urlConnection.setConnectTimeout(configManager.getTimeout());
+
+                    Drawable image = Drawable.createFromStream(urlConnection.getInputStream(), "tempImage.jpg");
 
                     Message message = new Message();
+                    message.what = RESULT_OK;
                     message.obj = image;
 
                     mHandler.sendMessage(message);
 
-                    Log.d("downloadImage", "DOWNLOADED");
                 } catch (IOException e){
                     Log.d("IOException", e.getMessage());
                     mHandler.sendEmptyMessage(RESULT_ERROR);

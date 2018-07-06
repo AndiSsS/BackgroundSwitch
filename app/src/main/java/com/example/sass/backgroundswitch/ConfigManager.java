@@ -16,7 +16,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 
 class ConfigManager {
-    final private int defaultTimeout = 2;
+    final private int defaultTimeout = 5;
     final private Object object = new Object();
 
     private String urlConfig = "https://drive.google.com/uc?export=download&confirm=no_antivirus&id=1BKo57JlpffywKz78VWYVKZdsCHeOHyyx";
@@ -24,21 +24,11 @@ class ConfigManager {
 
     private Handler mHandler;
 
-    private final int RESULT_OK = 1;
-    private final int RESULT_ERROR = 0;
-
-
     ConfigManager(){
         mHandler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(Message inputMessage) {
-                Log.d("handleMessage", String.valueOf(inputMessage.what));
-
-                if(inputMessage.what == RESULT_OK){
-
-                }
-                else {
-                    setTimeout(defaultTimeout); }
+                timeout = inputMessage.what;
             }
         };
     }
@@ -59,15 +49,13 @@ class ConfigManager {
 
                     int newTimeout = new JSONObject(configStr.toString()).getInt("timeout");
 
-                    mHandler.sendMessage()
+                    mHandler.sendEmptyMessage(newTimeout);
                 }
                 catch (IOException e){
                     Log.d("IOException", e.getMessage());
-                    mHandler.sendEmptyMessage(RESULT_ERROR);
                 }
                 catch (JSONException e){
                     Log.e("JSONException", e.getMessage());
-                    mHandler.sendEmptyMessage(RESULT_ERROR);
                 }
                 finally {
                     try {
@@ -82,15 +70,7 @@ class ConfigManager {
         }).start();
     }
 
-    private void setTimeout(int value){
-        synchronized (object){
-            timeout = value;
-        }
-    }
-
     public int getTimeout(){
-        synchronized (object) {
-            return timeout;
-        }
+        return timeout * 1000;
     }
 }
