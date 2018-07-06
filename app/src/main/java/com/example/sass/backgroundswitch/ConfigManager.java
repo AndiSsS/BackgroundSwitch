@@ -18,16 +18,17 @@ import java.net.URL;
 class ConfigManager {
     final private int defaultTimeout = 5;
     final private Object object = new Object();
+    final private String urlConfig = "https://drive.google.com/uc?export=download&confirm=no_antivirus&id=1BKo57JlpffywKz78VWYVKZdsCHeOHyyx";
 
-    private String urlConfig = "https://drive.google.com/uc?export=download&confirm=no_antivirus&id=1BKo57JlpffywKz78VWYVKZdsCHeOHyyx";
     private int timeout = defaultTimeout;
-
     private Handler mHandler;
 
     ConfigManager(){
         mHandler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(Message inputMessage) {
+                Log.d("ConfigManagerNewTimeout", String.valueOf(inputMessage.what));
+
                 timeout = inputMessage.what;
             }
         };

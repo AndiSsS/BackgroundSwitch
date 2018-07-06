@@ -13,6 +13,8 @@ public class SecondActivity extends AppCompatActivity {
     ImageManager imageManager;
     ConfigManager configManager;
 
+    boolean threadWork = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -23,20 +25,49 @@ public class SecondActivity extends AppCompatActivity {
         imageManager = new ImageManager(this, configManager);
         imageManager.updateImage();
 
-
         new Thread(new Runnable() {
             @Override
             public void run() {
-                while(true){
-                    try {
-                        Thread.sleep(configManager.getTimeout());
-                        imageManager.updateImage();
-                        configManager.updateConfig();
-                    } catch (InterruptedException e){
-                        Log.e("InterruptedException", e.getMessage());
-                    }
-                }
+                updateImageTimeout();
             }
         }).start();
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+
+        if(!threadWork){
+            threadWork = true;
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    updateImageTimeout();
+                }
+            }).start();
+        }
+    }
+
+    @Override
+    protected void onStop(){
+        super.onStop();
+
+        threadWork = false;
+    }
+
+    private void updateImageTimeout(){
+        while(true){
+            if(!threadWork)
+                break;
+
+            try {
+                Thread.sleep(configManager.getTimeout());
+                imageManager.updateImage();
+                configManager.updateConfig();
+            } catch (InterruptedException e){
+                Log.e("InterruptedException", e.getMessage());
+            }
+        }
     }
 }

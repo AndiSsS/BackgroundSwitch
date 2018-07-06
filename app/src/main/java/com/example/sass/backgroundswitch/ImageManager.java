@@ -25,9 +25,7 @@ class ImageManager {
     private String urlImageChecked;
 
     private Handler mHandler;
-
     private ConstraintLayout constraintLayout;
-
     private ConfigManager configManager;
 
     ImageManager(Context context, ConfigManager configManager) {
@@ -57,11 +55,11 @@ class ImageManager {
                 Drawable image = (Drawable) inputMessage.obj;
                 if(inputMessage.what == RESULT_OK && image != null){
                     constraintLayout.setBackground(image);
-                    Log.d("handleMessage", "OK");
+                    Log.d("ImageManager", "OK");
                 }
                 else{
                     constraintLayout.setBackgroundResource(R.drawable.default_background);
-                    Log.e("handleMessage", "ERROR");
+                    Log.e("ImageManager", "ERROR");
                 }
             }
         };
@@ -76,6 +74,7 @@ class ImageManager {
 
                     URLConnection urlConnection = url.openConnection();
                     urlConnection.setConnectTimeout(configManager.getTimeout());
+                    urlConnection.connect();
 
                     Drawable image = Drawable.createFromStream(urlConnection.getInputStream(), "tempImage.jpg");
 
@@ -86,7 +85,7 @@ class ImageManager {
                     mHandler.sendMessage(message);
 
                 } catch (IOException e){
-                    Log.d("IOException", e.getMessage());
+                    Log.d("IOExceptionImageManager", e.getMessage());
                     mHandler.sendEmptyMessage(RESULT_ERROR);
                 }
             }
