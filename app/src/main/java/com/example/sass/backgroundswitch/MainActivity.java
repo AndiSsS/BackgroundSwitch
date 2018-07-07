@@ -23,16 +23,7 @@ public class MainActivity extends AppCompatActivity {
         imageManager = new ImageManager(this, configManager);
 
         imageManager.updateImage();
-
-//        imageUpdateThread = new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                updateImageTimeout();
-//            }
-//        });
-//        lastThreadId = imageUpdateThread.getId();
-//        imageUpdateThread.start();
-    }
+        }
 
     @Override
     protected void onResume(){
@@ -64,12 +55,18 @@ public class MainActivity extends AppCompatActivity {
         while(Thread.currentThread().getId() == lastThreadId){
             Log.d("lastThreadIdThreadID", String.valueOf(lastThreadId));
 
+            if(!imageManager.getIsImageUpdated())
+                continue;
+
+            imageManager.setIsImageUpdated(false);
             try {
                 configManager.updateConfig();
                 Thread.sleep(configManager.getTimeout());
 
-                if(imageUpdateThread.getId() != lastThreadId)
+                if(imageUpdateThread.getId() != lastThreadId){
+                    imageManager.setIsImageUpdated(true);
                     break;
+                }
 
                 imageManager.updateImage();
             } catch (InterruptedException e){

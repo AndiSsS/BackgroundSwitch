@@ -28,6 +28,7 @@ class ImageManager {
     private Handler mHandler;
     private ConstraintLayout constraintLayout;
     private ConfigManager configManager;
+    private MutableBoolean isImageUpdated = new MutableBoolean(true);
 
     ImageManager(final Context context, final ConfigManager configManager) {
 
@@ -55,6 +56,8 @@ class ImageManager {
             @Override
             public void handleMessage(Message inputMessage) {
                 Drawable image = (Drawable) inputMessage.obj;
+                isImageUpdated.setValue(true);
+                Log.d("ImageMagerImageUpdedHS", String.valueOf(isImageUpdated.hashCode()));
 
                 if(inputMessage.what == RESULT_OK && image != null){
                     constraintLayout.setBackground(image);
@@ -109,5 +112,13 @@ class ImageManager {
 
     public void updateImage(){
         downloadImage(urlImageChecked);
+    }
+
+    public void setIsImageUpdated(boolean isImageUpdated) {
+        this.isImageUpdated.setValue(isImageUpdated);
+    }
+
+    public boolean getIsImageUpdated() {
+        return isImageUpdated.isValue();
     }
 }

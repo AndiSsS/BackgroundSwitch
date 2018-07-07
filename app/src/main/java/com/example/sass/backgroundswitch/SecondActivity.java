@@ -1,13 +1,11 @@
 package com.example.sass.backgroundswitch;
 
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
 public class SecondActivity extends AppCompatActivity {
 
-    Handler handler;
     ImageManager imageManager;
     ConfigManager configManager;
 
@@ -52,10 +50,15 @@ public class SecondActivity extends AppCompatActivity {
             if(!threadWork)
                 break;
 
+            if(!imageManager.getIsImageUpdated())
+                continue;
+
+            imageManager.setIsImageUpdated(false);
             try {
                 configManager.updateConfig();
                 Thread.sleep(configManager.getTimeout());
                 imageManager.updateImage();
+
             } catch (InterruptedException e){
                 Log.e("InterruptedException", e.getMessage());
             }
