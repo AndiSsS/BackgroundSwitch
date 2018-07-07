@@ -10,9 +10,8 @@ public class SecondActivity extends AppCompatActivity {
     Handler handler;
     ImageManager imageManager;
     ConfigManager configManager;
-    MutableBoolean isImageUpdated = new MutableBoolean(false);
 
-    boolean threadWork = true;
+    boolean threadWork = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,14 +21,7 @@ public class SecondActivity extends AppCompatActivity {
         configManager = new ConfigManager();
         imageManager = new ImageManager(this, configManager);
 
-        imageManager.updateImage(isImageUpdated);
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                updateImageTimeout();
-            }
-        }).start();
+        imageManager.updateImage();
     }
 
     @Override
@@ -60,15 +52,10 @@ public class SecondActivity extends AppCompatActivity {
             if(!threadWork)
                 break;
 
-            //if(!isImageUpdated.isValue())
-            //    continue;
-
-            isImageUpdated.setValue(false);
             try {
                 configManager.updateConfig();
                 Thread.sleep(configManager.getTimeout());
-                imageManager.updateImage(isImageUpdated);
-
+                imageManager.updateImage();
             } catch (InterruptedException e){
                 Log.e("InterruptedException", e.getMessage());
             }

@@ -11,7 +11,6 @@ public class MainActivity extends AppCompatActivity {
     ConfigManager configManager;
     ImageManager imageManager;
 
-    MutableBoolean isImageUpdated = new MutableBoolean(false);
     Thread imageUpdateThread;
     long lastThreadId;
 
@@ -23,7 +22,7 @@ public class MainActivity extends AppCompatActivity {
         configManager = new ConfigManager();
         imageManager = new ImageManager(this, configManager);
 
-        imageManager.updateImage(isImageUpdated);
+        imageManager.updateImage();
 
 //        imageUpdateThread = new Thread(new Runnable() {
 //            @Override
@@ -65,17 +64,14 @@ public class MainActivity extends AppCompatActivity {
         while(Thread.currentThread().getId() == lastThreadId){
             Log.d("lastThreadIdThreadID", String.valueOf(lastThreadId));
 
-            isImageUpdated.setValue(false);
             try {
                 configManager.updateConfig();
                 Thread.sleep(configManager.getTimeout());
 
-                if(imageUpdateThread.getId() != lastThreadId){
-                    isImageUpdated.setValue(true);
+                if(imageUpdateThread.getId() != lastThreadId)
                     break;
-                }
 
-                imageManager.updateImage(isImageUpdated);
+                imageManager.updateImage();
             } catch (InterruptedException e){
                 Log.e("InterruptedException", e.getMessage());
             }
