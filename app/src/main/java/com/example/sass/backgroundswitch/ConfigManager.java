@@ -16,10 +16,9 @@ import java.io.InputStreamReader;
 import java.net.URL;
 
 class ConfigManager {
-    final private int defaultTimeout = 5;
-    final private Object object = new Object();
     final private String urlConfig = "https://drive.google.com/uc?export=download&confirm=no_antivirus&id=1BKo57JlpffywKz78VWYVKZdsCHeOHyyx";
 
+    private static int defaultTimeout = 5;
     private int timeout = defaultTimeout;
     private Handler mHandler;
 
@@ -30,6 +29,7 @@ class ConfigManager {
                 Log.d("ConfigManagerNewTimeout", String.valueOf(inputMessage.what));
 
                 timeout = inputMessage.what;
+                defaultTimeout = timeout;
             }
         };
     }

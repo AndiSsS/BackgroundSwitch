@@ -9,10 +9,11 @@ import android.os.Message;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.widget.TextView;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 
 class ImageManager {
     private final int RESULT_OK = 1;
@@ -28,7 +29,8 @@ class ImageManager {
     private ConstraintLayout constraintLayout;
     private ConfigManager configManager;
 
-    ImageManager(Context context, ConfigManager configManager) {
+    ImageManager(final Context context, final ConfigManager configManager) {
+
         this.configManager = configManager;
         constraintLayout = (ConstraintLayout) ((AppCompatActivity) context).findViewById(R.id.background_main);
 
@@ -55,10 +57,14 @@ class ImageManager {
                 Drawable image = (Drawable) inputMessage.obj;
                 if(inputMessage.what == RESULT_OK && image != null){
                     constraintLayout.setBackground(image);
+                    setDebugInfo(context, "Internet");
+
                     Log.d("ImageManager", "OK");
                 }
                 else{
                     constraintLayout.setBackgroundResource(R.drawable.default_background);
+                    setDebugInfo(context, "Default");
+
                     Log.e("ImageManager", "ERROR");
                 }
             }
@@ -72,8 +78,8 @@ class ImageManager {
                 try{
                     URL url = new URL(imageUrl);
 
-                    URLConnection urlConnection = url.openConnection();
-                    urlConnection.setConnectTimeout(configManager.getTimeout());
+                    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                    urlConnection.setConnectTimeout(1200);
                     urlConnection.connect();
 
                     Drawable image = Drawable.createFromStream(urlConnection.getInputStream(), "tempImage.jpg");
@@ -90,6 +96,14 @@ class ImageManager {
                 }
             }
         }).start();
+    }
+
+    private void setDebugInfo(Context context, String imageType){
+        ((TextView)((AppCompatActivity) context).findViewById(R.id.timeoutTextView))
+                .setText("Timeout: " + String.valueOf(configManager.getTimeout()/1000) + "sec");
+
+        ((TextView)((AppCompatActivity) context).findViewById(R.id.imageTypeTextView))
+                .setText(imageType);
     }
 
     public void updateImage(){

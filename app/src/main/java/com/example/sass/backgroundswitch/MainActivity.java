@@ -19,8 +19,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         configManager = new ConfigManager();
-
         imageManager = new ImageManager(this, configManager);
+
         imageManager.updateImage();
 
         new Thread(new Runnable() {
@@ -64,9 +64,10 @@ public class MainActivity extends AppCompatActivity {
                 break;
 
             try {
+                configManager.updateConfig();
                 Thread.sleep(configManager.getTimeout());
                 imageManager.updateImage();
-                configManager.updateConfig();
+
             } catch (InterruptedException e){
                 Log.e("InterruptedException", e.getMessage());
             }
