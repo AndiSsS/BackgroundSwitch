@@ -57,12 +57,13 @@ class ImageManager {
             public void handleMessage(Message inputMessage) {
                 Drawable image = (Drawable) inputMessage.obj;
                 imageUpdated.setValue(true);
+                Log.d("ImageMagerImageUpdedHS", String.valueOf(imageUpdated.hashCode()));
 
                 if(inputMessage.what == RESULT_OK && image != null){
                     constraintLayout.setBackground(image);
                     setDebugInfo(context, "Internet");
 
-                    Log.d("ImageManager", "OK");
+                    //Log.d("ImageManagerThreadID", String.valueOf(Thread.currentThread().getId()));
                 }
                 else{
                     constraintLayout.setBackgroundResource(R.drawable.default_background);

@@ -26,7 +26,7 @@ class ConfigManager {
         mHandler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(Message inputMessage) {
-                Log.d("ConfigManagerNewTimeout", String.valueOf(inputMessage.what));
+                //Log.d("ConfigManagerNewTimeout", String.valueOf(inputMessage.what));
 
                 timeout = inputMessage.what;
                 defaultTimeout = timeout;

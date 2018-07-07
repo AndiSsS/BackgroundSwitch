@@ -11,10 +11,9 @@ public class MainActivity extends AppCompatActivity {
     ConfigManager configManager;
     ImageManager imageManager;
 
-    boolean threadWork = true;
     MutableBoolean isImageUpdated = new MutableBoolean(false);
-
-    Thread onCreateThread, onResumeThread;
+    Thread imageUpdateThread;
+    long lastThreadId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,37 +25,36 @@ public class MainActivity extends AppCompatActivity {
 
         imageManager.updateImage(isImageUpdated);
 
-        onCreateThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                updateImageTimeout();
-            }
-        });
-        onCreateThread.start();
+//        imageUpdateThread = new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                updateImageTimeout();
+//            }
+//        });
+//        lastThreadId = imageUpdateThread.getId();
+//        imageUpdateThread.start();
     }
 
     @Override
     protected void onResume(){
         super.onResume();
 
-        if(!threadWork){
-            threadWork = true;
-
-            onResumeThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    updateImageTimeout();
-                }
-            });
-            onResumeThread.start();
-        }
+        imageUpdateThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                updateImageTimeout();
+            }
+        });
+        lastThreadId = imageUpdateThread.getId();
+        Log.d("NEWLASTRTHREADID", String.valueOf(lastThreadId));
+        imageUpdateThread.start();
     }
 
     @Override
     protected void onStop(){
         super.onStop();
 
-        threadWork = false;
+        lastThreadId = 0;
     }
 
     public void onClick(View view){
@@ -64,20 +62,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateImageTimeout(){
-        while(true){
-            if(!threadWork)
-                break;
-
-            //if(!isImageUpdated.isValue())
-            //    continue;
+        while(Thread.currentThread().getId() == lastThreadId){
+            Log.d("lastThreadIdThreadID", String.valueOf(lastThreadId));
 
             isImageUpdated.setValue(false);
             try {
                 configManager.updateConfig();
-                imageManager.updateImage(isImageUpdated);
-
                 Thread.sleep(configManager.getTimeout());
 
+                if(imageUpdateThread.getId() != lastThreadId){
+                    isImageUpdated.setValue(true);
+                    break;
+                }
+
+                imageManager.updateImage(isImageUpdated);
             } catch (InterruptedException e){
                 Log.e("InterruptedException", e.getMessage());
             }
