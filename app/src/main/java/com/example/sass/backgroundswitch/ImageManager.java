@@ -28,6 +28,7 @@ class ImageManager {
     private Handler mHandler;
     private ConstraintLayout constraintLayout;
     private ConfigManager configManager;
+    private MutableBoolean imageUpdated;
 
     ImageManager(final Context context, final ConfigManager configManager) {
 
@@ -55,6 +56,8 @@ class ImageManager {
             @Override
             public void handleMessage(Message inputMessage) {
                 Drawable image = (Drawable) inputMessage.obj;
+                imageUpdated.setValue(true);
+
                 if(inputMessage.what == RESULT_OK && image != null){
                     constraintLayout.setBackground(image);
                     setDebugInfo(context, "Internet");
@@ -106,7 +109,8 @@ class ImageManager {
                 .setText(imageType);
     }
 
-    public void updateImage(){
+    public void updateImage(MutableBoolean imageUpdated){
+        this.imageUpdated = imageUpdated;
         downloadImage(urlImageChecked);
     }
 }

@@ -12,6 +12,9 @@ public class MainActivity extends AppCompatActivity {
     ImageManager imageManager;
 
     boolean threadWork = true;
+    MutableBoolean isImageUpdated = new MutableBoolean(false);
+
+    Thread onCreateThread, onResumeThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,14 +24,15 @@ public class MainActivity extends AppCompatActivity {
         configManager = new ConfigManager();
         imageManager = new ImageManager(this, configManager);
 
-        imageManager.updateImage();
+        imageManager.updateImage(isImageUpdated);
 
-        new Thread(new Runnable() {
+        onCreateThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 updateImageTimeout();
             }
-        }).start();
+        });
+        onCreateThread.start();
     }
 
     @Override
@@ -38,12 +42,13 @@ public class MainActivity extends AppCompatActivity {
         if(!threadWork){
             threadWork = true;
 
-            new Thread(new Runnable() {
+            onResumeThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
                     updateImageTimeout();
                 }
-            }).start();
+            });
+            onResumeThread.start();
         }
     }
 
@@ -63,10 +68,15 @@ public class MainActivity extends AppCompatActivity {
             if(!threadWork)
                 break;
 
+            //if(!isImageUpdated.isValue())
+            //    continue;
+
+            isImageUpdated.setValue(false);
             try {
                 configManager.updateConfig();
+                imageManager.updateImage(isImageUpdated);
+
                 Thread.sleep(configManager.getTimeout());
-                imageManager.updateImage();
 
             } catch (InterruptedException e){
                 Log.e("InterruptedException", e.getMessage());
