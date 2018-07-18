@@ -1,4 +1,11 @@
 <resources>
     <string name="app_name">BackgroundSwitch</string>
     <string name="button_next">Next</string>
+    <string name="images_from_picsum" translatable="false">Images from Picsum</string>
+    <string name="images_from_config" translatable="false">Images from config</string>
+
+    <string-array name="getImagesFrom">
+        <item>@string/images_from_picsum</item>
+        <item>@string/images_from_config</item>
+    </string-array>
 </resources>

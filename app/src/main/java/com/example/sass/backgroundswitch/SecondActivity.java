@@ -8,6 +8,7 @@ public class SecondActivity extends AppCompatActivity {
 
     ImageManager imageManager;
     ConfigManager configManager;
+    ScreenProperty screenProperty;
 
     boolean threadWork = false;
 
@@ -16,8 +17,9 @@ public class SecondActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_second);
 
-        configManager = new ConfigManager();
-        imageManager = new ImageManager(this, configManager);
+        screenProperty = new ScreenProperty(this);
+        configManager = new ConfigManager(screenProperty);
+        imageManager = new ImageManager(this, screenProperty, configManager);
 
         imageManager.updateImage();
     }
@@ -46,14 +48,10 @@ public class SecondActivity extends AppCompatActivity {
     }
 
     private void updateImageTimeout(){
-        while(true){
-            if(!threadWork)
-                break;
-
-            if(!imageManager.getIsImageUpdated())
+        while(threadWork){
+            if(imageManager.isImageUpdated())
                 continue;
 
-            imageManager.setIsImageUpdated(false);
             try {
                 configManager.updateConfig();
                 Thread.sleep(configManager.getTimeout());
