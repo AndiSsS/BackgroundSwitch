@@ -12,27 +12,31 @@ import android.util.Log;
 import android.widget.TextView;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
 class ImageManager {
     private final int RESULT_OK = 1;
     private final int RESULT_ERROR = 0;
-    private String picsumImageUrl;
+    private String picsumImagesUrl;
     private Handler mHandler;
     private ConstraintLayout constraintLayout;
     private ConfigManager configManager;
     private MutableBoolean isImageUpdated = new MutableBoolean(true);
-    private DownloadFrom downloadFrom = DownloadFrom.picsum;
+    private DownloadFrom downloadFrom;
+    private Context context;
 
     public enum DownloadFrom{
         picsum, config
     }
 
-    ImageManager(final Context context, ScreenProperty screenProperty, ConfigManager configManager) {
-        picsumImageUrl = screenProperty.getPicsumImageUrl();
+    ImageManager(final Context context, ScreenProperty screenProperty, ConfigManager configManager, DownloadFrom downloadFrom) {
+        this.context = context;
+        picsumImagesUrl = screenProperty.getPicsumImageUrl();
         this.configManager = configManager;
         constraintLayout = ((AppCompatActivity) context).findViewById(R.id.background_main);
+        this.downloadFrom = downloadFrom;
 
         mHandler = new Handler(Looper.getMainLooper()) {
             @Override
@@ -40,48 +44,19 @@ class ImageManager {
                 Drawable image = (Drawable) inputMessage.obj;
                 isImageUpdated.setValue(true);
 
-                Log.d("ImageMagerImageUpdedHS", String.valueOf(isImageUpdated.hashCode()));
-
                 if(inputMessage.what == RESULT_OK && image != null){
                     constraintLayout.setBackground(image);
                     setDebugInfo(context, "Internet");
-
-                    //Log.d("ImageManagerThreadID", String.valueOf(Thread.currentThread().getId()));
                 }
                 else{
-                    constraintLayout.setBackgroundResource(R.drawable.default_background);
-                    setDebugInfo(context, "Default");
-
+                    changeToDefaultImage();
                     Log.e("ImageManager", "ERROR");
                 }
             }
         };
     }
-
-    private void downloadImage(final String imageUrl) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try{
-                    URL url = new URL(imageUrl);
-
-                    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                    urlConnection.setConnectTimeout(1000);
-                    urlConnection.connect();
-
-                    Drawable image = Drawable.createFromStream(urlConnection.getInputStream(), "tempImage.jpg");
-
-                    Message message = new Message();
-                    message.what = RESULT_OK;
-                    message.obj = image;
-
-                    mHandler.sendMessage(message);
-                } catch (IOException e){
-                    Log.d("IOExceptionImageManager", e.getMessage());
-                    mHandler.sendEmptyMessage(RESULT_ERROR);
-                }
-            }
-        }).start();
+    ImageManager(final Context context, ScreenProperty screenProperty, ConfigManager configManager) {
+        this(context, screenProperty, configManager, DownloadFrom.picsum);
     }
 
     @SuppressLint("SetTextI18n")
@@ -93,20 +68,43 @@ class ImageManager {
                 .setText(imageType);
     }
 
-    public void updateImage(){
+    public void updateImage() {
         isImageUpdated.setValue(false);
 
-        if(downloadFrom == DownloadFrom.config){
-            if(!configManager.getNextImageUrl().isEmpty())
-                downloadImage(configManager.getNextImageUrl());
-            else{
-                mHandler.sendEmptyMessage(RESULT_ERROR);
-            }
-        }
-        else
-            downloadImage(picsumImageUrl);
-    }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try{
+                    if (!configManager.isConfigUpdated()) {
+                        try {
+                            Thread.sleep(500);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
 
+                    String imageUrl = picsumImagesUrl;
+                    if(downloadFrom == DownloadFrom.config)
+                        imageUrl = configManager.getNextImageUrl();
+
+                    URL url = new URL(imageUrl);
+                    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                    urlConnection.setConnectTimeout(1000);
+                    urlConnection.connect();
+
+                    Drawable image = Drawable.createFromStream(urlConnection.getInputStream(), "tempImage.jpg");
+
+                    Message message = new Message();
+                    message.what = RESULT_OK;
+                    message.obj = image;
+                    mHandler.sendMessage(message);
+                } catch (IOException e){
+                    Log.e("IOExceptionImageManager", e.getMessage());
+                    mHandler.sendEmptyMessage(RESULT_ERROR);
+                }
+            }
+        }).start();
+    }
     public void resetIsImageUpdated() {
         this.isImageUpdated.setValue(true);
     }
@@ -117,5 +115,14 @@ class ImageManager {
 
     public void setDownloadFrom(DownloadFrom downloadFrom) {
         this.downloadFrom = downloadFrom;
+    }
+
+    public DownloadFrom getDownloadFrom() {
+        return downloadFrom;
+    }
+
+    public void changeToDefaultImage(){
+        constraintLayout.setBackgroundResource(R.drawable.default_background);
+        setDebugInfo(context, "Default");
     }
 }

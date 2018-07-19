@@ -13,18 +13,17 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URL;
 
 class ConfigManager {
     final private String urlConfig = "https://drive.google.com/uc?export=download&confirm=no_antivirus&id=1BKo57JlpffywKz78VWYVKZdsCHeOHyyx";
-
     private static int defaultTimeout = 5;
     private int timeout = defaultTimeout;
     private int nextImageUrlIndex = 0;
     private String nextImageUrl = "";
     private String screenProperty;
     private Handler mHandler;
+    private MutableBoolean isConfigUpdated = new MutableBoolean(true);
 
     ConfigManager(ScreenProperty screenProperty){
         this.screenProperty = screenProperty.getConfigScreenProperty();
@@ -32,18 +31,21 @@ class ConfigManager {
         mHandler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(Message inputMessage) {
-                Bundle data = inputMessage.getData();
+                isConfigUpdated.setValue(true);
 
+                Bundle data = inputMessage.getData();
                 timeout = data.getInt("timeout");
                 nextImageUrl = data.getString("nextImageUrl");
                 defaultTimeout = timeout;
-                Log.d("CONFIG new timeout", String.valueOf(timeout));
 
+                Log.e("CONFIG new timeout", String.valueOf(timeout));
             }
         };
     }
 
     public void updateConfig(){
+        isConfigUpdated.setValue(false);
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -100,6 +102,12 @@ class ConfigManager {
     }
 
     public String getNextImageUrl() {
-        return nextImageUrl;
+        String temp = nextImageUrl;
+        nextImageUrl = "";
+        return temp;
+    }
+
+    public boolean isConfigUpdated() {
+        return isConfigUpdated.isValue();
     }
 }

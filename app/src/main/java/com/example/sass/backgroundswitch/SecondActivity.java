@@ -12,15 +12,34 @@ public class SecondActivity extends AppCompatActivity {
 
     boolean threadWork = false;
 
+    private void updateImageTimeout(){
+        while(threadWork){
+            if(!imageManager.isImageUpdated())
+                continue;
+
+            try {
+                configManager.updateConfig();
+                Thread.sleep(configManager.getTimeout());
+                imageManager.updateImage();
+
+            } catch (InterruptedException e){
+                Log.e("InterruptedException", e.getMessage());
+            }
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_second);
 
+        ImageManager.DownloadFrom downloadFrom = (ImageManager.DownloadFrom) getIntent().getExtras().get("downloadFrom");
+
         screenProperty = new ScreenProperty(this);
         configManager = new ConfigManager(screenProperty);
-        imageManager = new ImageManager(this, screenProperty, configManager);
+        imageManager = new ImageManager(this, screenProperty, configManager, downloadFrom);
 
+        configManager.updateConfig();
         imageManager.updateImage();
     }
 
@@ -45,21 +64,5 @@ public class SecondActivity extends AppCompatActivity {
         super.onStop();
 
         threadWork = false;
-    }
-
-    private void updateImageTimeout(){
-        while(threadWork){
-            if(imageManager.isImageUpdated())
-                continue;
-
-            try {
-                configManager.updateConfig();
-                Thread.sleep(configManager.getTimeout());
-                imageManager.updateImage();
-
-            } catch (InterruptedException e){
-                Log.e("InterruptedException", e.getMessage());
-            }
-        }
     }
 }

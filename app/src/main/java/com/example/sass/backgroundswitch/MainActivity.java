@@ -24,8 +24,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         while(Thread.currentThread().getId() == lastThreadId){
             Log.d("lastThreadIdThreadID", String.valueOf(lastThreadId));
 
-            if(imageManager.isImageUpdated())
+            if(!imageManager.isImageUpdated()){
+                //Log.e("ImageNOTUpdated", String.valueOf(lastThreadId));
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 continue;
+            }
 
             try {
                 configManager.updateConfig();
@@ -53,6 +60,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         configManager = new ConfigManager(screenProperty);
         imageManager = new ImageManager(this, screenProperty, configManager);
 
+        configManager.updateConfig();
         imageManager.updateImage();
 
         Spinner spinner = findViewById(R.id.spinnerGetImagesFrom);
@@ -86,7 +94,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     public void onClick(View view){
-        startActivity(new Intent(this, SecondActivity.class));
+        Intent intent = new Intent(this, SecondActivity.class);
+        intent.putExtra("downloadFrom", imageManager.getDownloadFrom());
+        startActivity(intent);
     }
 
     public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
