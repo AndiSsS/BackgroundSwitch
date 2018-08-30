@@ -12,9 +12,9 @@ import android.util.Log;
 import android.widget.TextView;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 class ImageManager {
     private final int RESULT_OK = 1;
@@ -23,7 +23,7 @@ class ImageManager {
     private Handler mHandler;
     private ConstraintLayout constraintLayout;
     private ConfigManager configManager;
-    private MutableBoolean isImageUpdated = new MutableBoolean(true);
+    private AtomicBoolean isImageUpdated = new AtomicBoolean(true);
     private DownloadFrom downloadFrom;
     private Context context;
 
@@ -42,7 +42,7 @@ class ImageManager {
             @Override
             public void handleMessage(Message inputMessage) {
                 Drawable image = (Drawable) inputMessage.obj;
-                isImageUpdated.setValue(true);
+                isImageUpdated.set(true);
 
                 if(inputMessage.what == RESULT_OK && image != null){
                     constraintLayout.setBackground(image);
@@ -69,7 +69,7 @@ class ImageManager {
     }
 
     public void updateImage() {
-        isImageUpdated.setValue(false);
+        isImageUpdated.set(false);
 
         new Thread(new Runnable() {
             @Override
@@ -106,11 +106,11 @@ class ImageManager {
         }).start();
     }
     public void resetIsImageUpdated() {
-        this.isImageUpdated.setValue(true);
+        this.isImageUpdated.set(true);
     }
 
     public boolean isImageUpdated() {
-        return isImageUpdated.isValue();
+        return isImageUpdated.get();
     }
 
     public void setDownloadFrom(DownloadFrom downloadFrom) {

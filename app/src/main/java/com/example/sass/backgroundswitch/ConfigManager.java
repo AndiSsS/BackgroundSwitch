@@ -14,6 +14,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 class ConfigManager {
     final private String urlConfig = "https://drive.google.com/uc?export=download&confirm=no_antivirus&id=1BKo57JlpffywKz78VWYVKZdsCHeOHyyx";
@@ -23,7 +24,7 @@ class ConfigManager {
     private String nextImageUrl = "";
     private String screenProperty;
     private Handler mHandler;
-    private MutableBoolean isConfigUpdated = new MutableBoolean(true);
+    private AtomicBoolean isConfigUpdated = new AtomicBoolean(true);
 
     ConfigManager(ScreenProperty screenProperty){
         this.screenProperty = screenProperty.getConfigScreenProperty();
@@ -31,7 +32,7 @@ class ConfigManager {
         mHandler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(Message inputMessage) {
-                isConfigUpdated.setValue(true);
+                isConfigUpdated.set(true);
 
                 Bundle data = inputMessage.getData();
                 timeout = data.getInt("timeout");
@@ -44,7 +45,7 @@ class ConfigManager {
     }
 
     public void updateConfig(){
-        isConfigUpdated.setValue(false);
+        isConfigUpdated.set(false);
 
         new Thread(new Runnable() {
             @Override
@@ -108,6 +109,6 @@ class ConfigManager {
     }
 
     public boolean isConfigUpdated() {
-        return isConfigUpdated.isValue();
+        return isConfigUpdated.get();
     }
 }
